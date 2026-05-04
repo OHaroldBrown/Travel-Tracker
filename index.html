@@ -6,135 +6,117 @@
     <title>Travel Tracker 2026</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #f1f5f9;
-            min-height: 100vh;
-            padding: 16px;
-        }
-
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; min-height: 100vh; padding: 16px; }
         .container { max-width: 900px; margin: 0 auto; }
-
         h1 { font-size: 2rem; font-weight: 300; letter-spacing: -1px; margin-bottom: 6px; }
         .subtitle { color: #94a3b8; margin-bottom: 16px; font-size: 0.95rem; }
-
-        .sync-bar {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(71, 85, 105, 0.4);
-            border-radius: 6px;
-            padding: 8px 14px;
-            font-size: 0.8rem;
-            color: #94a3b8;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .sync-bar { background: rgba(30,41,59,0.8); border: 1px solid rgba(71,85,105,0.4); border-radius: 6px; padding: 8px 14px; font-size: 0.8rem; color: #94a3b8; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
         .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #64748b; flex-shrink: 0; }
         .sync-dot.connected { background: #4ade80; }
         .sync-dot.error { background: #f87171; }
-
-        .input-section {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(71, 85, 105, 0.5);
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-
+        .input-section { background: rgba(30,41,59,0.8); border: 1px solid rgba(71,85,105,0.5); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+        .input-section h3 { font-size: 0.85rem; font-weight: 500; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
         .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .input-full { grid-column: 1 / -1; }
-
-        input, select {
-            width: 100%;
-            padding: 10px 12px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(71, 85, 105, 0.6);
-            border-radius: 6px;
-            color: #f1f5f9;
-            font-size: 0.95rem;
-        }
-
+        .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .date-field label { display: block; font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px; }
+        .nights-display { background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); border-radius: 6px; padding: 10px 12px; font-size: 0.85rem; color: #a5b4fc; text-align: center; margin-bottom: 10px; }
+        input, select { width: 100%; padding: 10px 12px; background: rgba(15,23,42,0.6); border: 1px solid rgba(71,85,105,0.6); border-radius: 6px; color: #f1f5f9; font-size: 0.95rem; }
         input::placeholder { color: #64748b; }
         input:focus, select:focus { outline: none; border-color: #94a3b8; }
-
-        .btn-add {
-            width: 100%;
-            padding: 12px;
-            background: #f1f5f9;
-            color: #0f172a;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
+        .btn-add { width: 100%; padding: 12px; background: #f1f5f9; color: #0f172a; border: none; border-radius: 6px; font-weight: 600; font-size: 1rem; cursor: pointer; }
         .btn-add:active { background: #cbd5e1; }
-
-        .range-section {
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(71, 85, 105, 0.5);
-            border-radius: 10px;
-            padding: 14px 16px;
-            margin-bottom: 16px;
-        }
-
+        .range-section { background: rgba(30,41,59,0.8); border: 1px solid rgba(71,85,105,0.5); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
         .range-label { font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; }
-
-        .range-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 0; }
-
-        .range-btn {
-            padding: 6px 14px;
-            border-radius: 5px;
-            border: 1px solid rgba(71, 85, 105, 0.6);
-            background: rgba(15, 23, 42, 0.4);
-            color: #94a3b8;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-
-        .range-btn.active {
-            background: rgba(99, 102, 241, 0.3);
-            border-color: rgba(99, 102, 241, 0.6);
-            color: #a5b4fc;
-        }
-
+        .range-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+        .range-btn { padding: 6px 14px; border-radius: 5px; border: 1px solid rgba(71,85,105,0.6); background: rgba(15,23,42,0.4); color: #94a3b8; font-size: 0.85rem; cursor: pointer; }
+        .range-btn.active { background: rgba(99,102,241,0.3); border-color: rgba(99,102,241,0.6); color: #a5b4fc; }
         .custom-range { display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .custom-range.visible { display: grid; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-
-        .stat-card { border-radius: 8px; padding: 14px; border: 1px solid rgba(71, 85, 105, 0.4); text-align: center; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+        .stat-card { border-radius: 8px; padding: 14px; border: 1px solid rgba(71,85,105,0.4); text-align: center; }
         .stat-card.drive { background: linear-gradient(135deg, rgba(217,119,6,0.3), rgba(217,119,6,0.1)); border-color: rgba(217,119,6,0.4); }
         .stat-card.flight { background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(59,130,246,0.1)); border-color: rgba(59,130,246,0.4); }
-        .stat-card.total { background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(139,92,246,0.1)); border-color: rgba(139,92,246,0.4); }
-
+        .stat-card.nights { background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(139,92,246,0.1)); border-color: rgba(139,92,246,0.4); }
+        .stat-card.trips { background: linear-gradient(135deg, rgba(20,184,166,0.3), rgba(20,184,166,0.1)); border-color: rgba(20,184,166,0.4); }
         .stat-label { font-size: 0.75rem; opacity: 0.8; margin-bottom: 6px; }
         .stat-value { font-size: 1.8rem; font-weight: 300; }
         .stat-sub { font-size: 0.7rem; opacity: 0.6; margin-top: 4px; }
-
         .entries-title { font-size: 1rem; color: #cbd5e1; margin-bottom: 12px; }
-
-        .entry {
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(71, 85, 105, 0.4);
-            border-radius: 8px;
-            padding: 12px 14px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
+        .entry { background: rgba(30,41,59,0.6); border: 1px solid rgba(71,85,105,0.4); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .entry-left { flex: 1; min-width: 0; }
         .entry-city { font-weight: 500; font-size: 1rem; }
         .entry-details { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+        .entry-nights { font-size: 0.75rem; color: #a5b4fc; margin-top: 2px; }
         .entry-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .mode-badge { font-size: 0.75rem; font-weight: 500; padding: 4px 10px; border-radius: 4px; }
+        .mode-badge.drive { background: rgba(217,119,6,0.2); color: #fdba74; }
+        .mode-badge.flight { background: rgba(59,130,246,0.2); color: #93c5fd; }
+        .btn-delete { background: none; border: none; color: #64748b; cursor: pointer; font-size: 1.2rem; padding: 2px 6px; }
+        .btn-delete:hover { color: #f87171; }
+        .empty { background: rgba(30,41,59,0.6); border: 1px solid rgba(71,85,105,0.4); border-radius: 8px; padding: 40px; text-align: center; color: #64748b; }
+        .loading { text-align: center; color: #64748b; padding: 30px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Travel 2026</h1>
+    <p class="subtitle">Track trips, hotels, and travel patterns</p>
+    <div class="sync-bar">
+        <div class="sync-dot" id="syncDot"></div>
+        <span id="syncStatus">Connecting...</span>
+    </div>
+    <div class="input-section">
+        <h3>Add Trip</h3>
+        <div class="date-row">
+            <div class="date-field"><label>Check-in</label><input type="date" id="inputCheckin" onchange="updateNights()"></div>
+            <div class="date-field"><label>Check-out</label><input type="date" id="inputCheckout" onchange="updateNights()"></div>
+        </div>
+        <div class="nights-display" id="nightsDisplay">Select check-in and check-out dates</div>
+        <div class="input-grid">
+            <input type="text" id="inputCity" placeholder="City / Event" class="input-full">
+            <input type="text" id="inputHotel" placeholder="Hotel (optional)" class="input-full">
+            <select id="inputMode" class="input-full"><option value="drive">Drive</option><option value="flight">Flight</option></select>
+        </div>
+        <button class="btn-add" onclick="addEntry()">Add Trip</button>
+    </div>
+    <div class="range-section">
+        <div class="range-label">Show stats for:</div>
+        <div class="range-buttons">
+            <button class="range-btn" onclick="setRange('week', this)">This Week</button>
+            <button class="range-btn" onclick="setRange('month', this)">This Month</button>
+            <button class="range-btn active" onclick="setRange('year', this)">This Year</button>
+            <button class="range-btn" onclick="setRange('all', this)">All Time</button>
+            <button class="range-btn" onclick="setRange('custom', this)">Custom</button>
+        </div>
+        <div class="custom-range" id="customRange">
+            <input type="date" id="rangeStart" onchange="render()">
+            <input type="date" id="rangeEnd" onchange="render()">
+        </div>
+    </div>
+    <div id="statsContainer" class="stats-grid" style="display:none;"></div>
+    <div id="entriesList"><div class="loading">Loading trips...</div></div>
+</div>
+<script>
+    var DB_URL = 'https://travel-tracker-28fa0-default-rtdb.firebaseio.com/entries';
+    var allEntries = {};
+    var currentRange = 'year';
+    function setSyncStatus(status, state) { document.getElementById('syncStatus').textContent = status; var dot = document.getElementById('syncDot'); dot.className = 'sync-dot' + (state === 'ok' ? ' connected' : state === 'err' ? ' error' : ''); }
+    function updateNights() { var ci = document.getElementById('inputCheckin').value; var co = document.getElementById('inputCheckout').value; var d = document.getElementById('nightsDisplay'); if (ci && co) { var n = calcNights(ci, co); d.textContent = n > 0 ? n + ' night' + (n !== 1 ? 's' : '') + ' (' + ci + ' to ' + co + ')' : 'Check-out must be after check-in'; } else { d.textContent = 'Select check-in and check-out dates'; } }
+    function calcNights(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+    function setRange(range, btn) { currentRange = range; document.querySelectorAll('.range-btn').forEach(function(b) { b.classList.remove('active'); }); btn.classList.add('active'); var cd = document.getElementById('customRange'); if (range === 'custom') { cd.classList.add('visible'); } else { cd.classList.remove('visible'); render(); } }
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function getDateRange() { var now = new Date(); var y = now.getFullYear(); var m = now.getMonth(); var d = now.getDate(); var today = y + '-' + pad(m+1) + '-' + pad(d); if (currentRange === 'week') { var day = now.getDay(); var diff = d - day + (day === 0 ? -6 : 1); var s = new Date(y, m, diff); return { start: s.getFullYear() + '-' + pad(s.getMonth()+1) + '-' + pad(s.getDate()), end: today }; } else if (currentRange === 'month') { return { start: y + '-' + pad(m+1) + '-01', end: today }; } else if (currentRange === 'year') { return { start: y + '-01-01', end: today }; } else if (currentRange === 'custom') { var rs = document.getElementById('rangeStart').value; var re = document.getElementById('rangeEnd').value; if (!rs || !re) return null; return { start: rs, end: re }; } return null; }
+    function filterEntries(entries) { var range = getDateRange(); if (!range) return entries; return entries.filter(function(i) { return i[1].checkin >= range.start && i[1].checkin <= range.end; }); }
+    function loadEntries() { fetch(DB_URL + '.json').then(function(res) { if (!res.ok) throw new Error(); return res.json(); }).then(function(data) { allEntries = data || {}; setSyncStatus('Synced', 'ok'); render(); }).catch(function() { setSyncStatus('Connection error - check internet', 'err'); render(); }); }
+    function addEntry() { var ci = document.getElementById('inputCheckin').value; var co = document.getElementById('inputCheckout').value; var city = document.getElementById('inputCity').value.trim(); var hotel = document.getElementById('inputHotel').value.trim(); var mode = document.getElementById('inputMode').value; if (!ci || !co || !city) { alert('Please fill in dates and city'); return; } var n = calcNights(ci, co); if (n <= 0) { alert('Check-out must be after check-in'); return; } var entry = { checkin: ci, checkout: co, nights: n, city: city, hotel: hotel, mode: mode }; setSyncStatus('Saving...', ''); fetch(DB_URL + '.json', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entry) }).then(function(res) { return res.json(); }).then(function(result) { allEntries[result.name] = entry; document.getElementById('inputCheckin').value = ''; document.getElementById('inputCheckout').value = ''; document.getElementById('inputCity').value = ''; document.getElementById('inputHotel').value = ''; document.getElementById('inputMode').value = 'drive'; document.getElementById('nightsDisplay').textContent = 'Select check-in and check-out dates'; setSyncStatus('Saved', 'ok'); render(); }).catch(function() { setSyncStatus('Save failed', 'err'); }); }
+    function deleteEntry(key) { setSyncStatus('Deleting...', ''); fetch(DB_URL + '/' + key + '.json', { method: 'DELETE' }).then(function() { delete allEntries[key]; setSyncStatus('Synced', 'ok'); render(); }).catch(function() { setSyncStatus('Delete failed', 'err'); }); }
+    function render() { var allList = Object.entries(allEntries); var filtered = filterEntries(allList); var sc = document.getElementById('statsContainer'); if (filtered.length === 0) { sc.style.display = 'none'; } else { var drives = filtered.filter(function(i) { return i[1].mode === 'drive'; }).length; var flights = filtered.filter(function(i) { return i[1].mode === 'flight'; }).length; var total = filtered.length; var totalNights = filtered.reduce(function(sum, i) { return sum + (i[1].nights || 0); }, 0); sc.style.display = 'grid'; sc.innerHTML = '<div class="stat-card drive"><div class="stat-label">By Drive</div><div class="stat-value">' + Math.round(drives/total*100) + '%</div><div class="stat-sub">' + drives + ' of ' + total + ' trips</div></div><div class="stat-card flight"><div class="stat-label">By Flight</div><div class="stat-value">' + Math.round(flights/total*100) + '%</div><div class="stat-sub">' + flights + ' of ' + total + ' trips</div></div><div class="stat-card trips"><div class="stat-label">Total Trips</div><div class="stat-value">' + total + '</div><div class="stat-sub">in selected range</div></div><div class="stat-card nights"><div class="stat-label">Nights Away</div><div class="stat-value">' + totalNights + '</div><div class="stat-sub">hotel nights</div></div>'; } var list = document.getElementById('entriesList'); if (filtered.length === 0) { list.innerHTML = '<div class="empty">No trips found for this date range.</div>'; return; } var sorted = filtered.sort(function(a, b) { return new Date(b[1].checkin) - new Date(a[1].checkin); }); var html = '<div class="entries-title">Trips (' + filtered.length + ')</div>'; sorted.forEach(function(item) { var key = item[0]; var e = item[1]; html += '<div class="entry"><div class="entry-left"><div class="entry-city">' + e.city + '</div><div class="entry-details">' + e.checkin + ' to ' + e.checkout + (e.hotel ? ' &bull; ' + e.hotel : '') + '</div><div class="entry-nights">' + (e.nights || '?') + ' night' + (e.nights !== 1 ? 's' : '') + '</div></div><div class="entry-right"><span class="mode-badge ' + e.mode + '">' + (e.mode === 'drive' ? 'Drive' : 'Flight') + '</span><button class="btn-delete" onclick="deleteEntry(\'' + key + '\')">&#x2715;</button></div></div>'; }); list.innerHTML = html; }
+    loadEntries();
+    setInterval(loadEntries, 30000);
+</script>
+</body>
+</html>        .entry-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
         .mode-badge { font-size: 0.75rem; font-weight: 500; padding: 4px 10px; border-radius: 4px; }
         .mode-badge.drive { background: rgba(217,119,6,0.2); color: #fdba74; }
