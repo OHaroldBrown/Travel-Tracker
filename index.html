@@ -19,8 +19,6 @@
         .sync-dot.error { background: #f87171; }
         .user-pill { background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; white-space: nowrap; }
         .user-pill:hover { background: rgba(99,102,241,0.3); }
-
-        /* Login screen */
         .login-screen { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
         .login-screen.visible { display: flex; }
         .login-box { background: rgba(30,41,59,0.9); border: 1px solid rgba(71,85,105,0.5); border-radius: 16px; padding: 32px 24px; width: 100%; max-width: 380px; text-align: center; }
@@ -30,8 +28,6 @@
         .login-box input::placeholder { color: #64748b; }
         .login-box input:focus { outline: none; border-color: #a5b4fc; }
         .btn-login { width: 100%; padding: 12px; background: #f1f5f9; color: #0f172a; border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; cursor: pointer; }
-        .btn-login:active { background: #cbd5e1; }
-
         .input-section { background: rgba(30,41,59,0.8); border: 1px solid rgba(71,85,105,0.5); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
         .input-section h3 { font-size: 0.85rem; font-weight: 500; color: #94a3b8; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
         .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
@@ -89,9 +85,10 @@
         .import-section h3 { font-size: 0.85rem; font-weight: 500; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
         .import-note { font-size: 0.8rem; color: #64748b; margin-bottom: 12px; line-height: 1.5; }
         .import-note span { color: #a5b4fc; }
-        .import-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .import-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         .btn-import { padding: 10px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.4); color: #a5b4fc; border-radius: 6px; font-size: 0.9rem; cursor: pointer; text-align: center; }
         .btn-template { padding: 10px; background: rgba(20,184,166,0.2); border: 1px solid rgba(20,184,166,0.4); color: #5eead4; border-radius: 6px; font-size: 0.9rem; cursor: pointer; }
+        .btn-export { padding: 10px; background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); color: #fcd34d; border-radius: 6px; font-size: 0.9rem; cursor: pointer; }
         .import-status { margin-top: 10px; font-size: 0.85rem; color: #94a3b8; min-height: 20px; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .modal-overlay.visible { display: flex; }
@@ -109,7 +106,6 @@
 </head>
 <body>
 
-<!-- Login Screen -->
 <div class="login-screen" id="loginScreen">
     <div class="login-box">
         <h2>Travel Tracker</h2>
@@ -187,11 +183,12 @@
     <div id="entriesList"><div class="loading">Loading trips...</div></div>
 
     <div class="import-section">
-        <h3>Import from Excel or CSV</h3>
-        <div class="import-note">Columns: <span>checkin, checkout, city, hotelBrand, hotelName, mode, airline</span><br>Dates: YYYY-MM-DD. Mode: <span>drive</span> or <span>flight</span></div>
+        <h3>Data</h3>
+        <div class="import-note">Import: columns <span>checkin, checkout, city, hotelBrand, hotelName, mode, airline</span>. Dates: YYYY-MM-DD.</div>
         <div class="import-buttons">
             <label class="btn-import">Upload File<input type="file" id="importFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImport(this)"></label>
             <button class="btn-template" onclick="downloadTemplate()">Download Template</button>
+            <button class="btn-export" onclick="exportData()">Export My Data</button>
         </div>
         <div class="import-status" id="importStatus"></div>
     </div>
@@ -243,65 +240,18 @@
 </div>
 
 <script>
-    var BASE_URL = 'https://travel-tracker-28fa0-default-rtdb.firebaseio.com/users';
-    var DB_URL = '';
-    var currentUser = '';
-    var allEntries = {};
-    var currentRange = 'year';
-    var editingKey = null;
-    var DEFAULT_ORDER = ['drive','flight','trips','nightsaway','hilton','marriott','weeksaway','weekshome','calaway','calhome'];
-    var cardOrder = JSON.parse(localStorage.getItem('cardOrder')||'null')||DEFAULT_ORDER.slice();
+    var BASE_URL='https://travel-tracker-28fa0-default-rtdb.firebaseio.com/users';
+    var DB_URL='';
+    var currentUser='';
+    var allEntries={},currentRange='year',editingKey=null;
+    var DEFAULT_ORDER=['drive','flight','trips','nightsaway','hilton','marriott','weeksaway','weekshome','calaway','calhome'];
+    var cardOrder=JSON.parse(localStorage.getItem('cardOrder')||'null')||DEFAULT_ORDER.slice();
     function saveCardOrder(){localStorage.setItem('cardOrder',JSON.stringify(cardOrder));}
-
-    function sanitizeName(name) {
-        return name.trim().toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 30);
-    }
-
-    function doLogin() {
-        var name = document.getElementById('loginName').value.trim();
-        if (!name) { alert('Please enter your name'); return; }
-        currentUser = sanitizeName(name);
-        var displayName = name;
-        localStorage.setItem('travelUser', currentUser);
-        localStorage.setItem('travelUserDisplay', displayName);
-        startApp(displayName);
-    }
-
-    function switchUser() {
-        if (confirm('Switch to a different user? Your data will be saved.')) {
-            localStorage.removeItem('travelUser');
-            localStorage.removeItem('travelUserDisplay');
-            document.getElementById('appContainer').style.display = 'none';
-            document.getElementById('loginScreen').classList.add('visible');
-            document.getElementById('loginName').value = '';
-            allEntries = {};
-        }
-    }
-
-    function startApp(displayName) {
-        DB_URL = BASE_URL + '/' + currentUser + '/entries';
-        document.getElementById('loginScreen').classList.remove('visible');
-        document.getElementById('appContainer').style.display = 'block';
-        document.getElementById('userLabel').textContent = displayName;
-        loadEntries();
-    }
-
-    // Check if already logged in
-    window.addEventListener('load', function() {
-        var saved = localStorage.getItem('travelUser');
-        var savedDisplay = localStorage.getItem('travelUserDisplay');
-        if (saved) {
-            currentUser = saved;
-            startApp(savedDisplay || saved);
-        } else {
-            document.getElementById('loginScreen').classList.add('visible');
-        }
-        // Allow Enter key on login
-        document.getElementById('loginName').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') doLogin();
-        });
-    });
-
+    function sanitizeName(n){return n.trim().toLowerCase().replace(/[^a-z0-9]/g,'_').substring(0,30);}
+    function doLogin(){var name=document.getElementById('loginName').value.trim();if(!name){alert('Please enter your name');return;}currentUser=sanitizeName(name);localStorage.setItem('travelUser',currentUser);localStorage.setItem('travelUserDisplay',name);startApp(name);}
+    function switchUser(){if(confirm('Switch to a different user? Your data will be saved.')){localStorage.removeItem('travelUser');localStorage.removeItem('travelUserDisplay');document.getElementById('appContainer').style.display='none';document.getElementById('loginScreen').classList.add('visible');document.getElementById('loginName').value='';allEntries={};}}
+    function startApp(displayName){DB_URL=BASE_URL+'/'+currentUser+'/entries';document.getElementById('loginScreen').classList.remove('visible');document.getElementById('appContainer').style.display='block';document.getElementById('userLabel').textContent=displayName;loadEntries();}
+    window.addEventListener('load',function(){var saved=localStorage.getItem('travelUser');var savedDisplay=localStorage.getItem('travelUserDisplay');if(saved){currentUser=saved;startApp(savedDisplay||saved);}else{document.getElementById('loginScreen').classList.add('visible');}document.getElementById('loginName').addEventListener('keypress',function(e){if(e.key==='Enter')doLogin();});});
     function setSyncStatus(status,state){document.getElementById('syncStatus').textContent=status;var dot=document.getElementById('syncDot');dot.className='sync-dot'+(state==='ok'?' connected':state==='err'?' error':'');}
     function pad(n){return n<10?'0'+n:''+n;}
     function calcNights(a,b){return Math.round((new Date(b)-new Date(a))/86400000);}
@@ -314,8 +264,9 @@
     function openEditModal(key){editingKey=key;var e=allEntries[key];document.getElementById('editCheckin').value=e.checkin||'';document.getElementById('editCheckout').value=e.checkout||'';document.getElementById('editCity').value=e.city||'';document.getElementById('editHotelBrand').value=e.hotelBrand||'';document.getElementById('editHotelName').value=e.hotelName||'';document.getElementById('editMode').value=e.mode||'drive';document.getElementById('editAirline').value=e.airline||'';toggleAirline('editAirlineField',e.mode||'drive');updateEditNights();document.getElementById('editModal').classList.add('visible');}
     function closeModal(){document.getElementById('editModal').classList.remove('visible');editingKey=null;}
     function saveEdit(){var ci=document.getElementById('editCheckin').value;var co=document.getElementById('editCheckout').value;var city=document.getElementById('editCity').value.trim();var hotelBrand=document.getElementById('editHotelBrand').value;var hotelName=document.getElementById('editHotelName').value.trim();var mode=document.getElementById('editMode').value;var airline=mode==='flight'?document.getElementById('editAirline').value:'';if(!ci||!co||!city){alert('Please fill in dates and city');return;}var n=calcNights(ci,co);if(n<=0){alert('Check-out must be after check-in');return;}var updated={checkin:ci,checkout:co,nights:n,city:city,hotelBrand:hotelBrand,hotelName:hotelName,mode:mode,airline:airline};setSyncStatus('Saving...','');fetch(DB_URL+'/'+editingKey+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(updated)}).then(function(res){return res.json();}).then(function(){allEntries[editingKey]=updated;setSyncStatus('Saved','ok');closeModal();render();}).catch(function(){setSyncStatus('Save failed','err');});}
+    function exportData(){var allList=Object.entries(allEntries);if(allList.length===0){alert('No data to export.');return;}var rows=[['checkin','checkout','city','hotelBrand','hotelName','mode','airline','nights']];var sorted=allList.sort(function(a,b){return new Date(a[1].checkin)-new Date(b[1].checkin);});sorted.forEach(function(item){var e=item[1];rows.push([e.checkin||'',e.checkout||'',e.city||'',e.hotelBrand||'',e.hotelName||'',e.mode||'',e.airline||'',e.nights||'']);});var ws=XLSX.utils.aoa_to_sheet(rows);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'My Trips');var today=new Date();var fname='travel-backup-'+today.getFullYear()+'-'+pad(today.getMonth()+1)+'-'+pad(today.getDate())+'.xlsx';XLSX.writeFile(wb,fname);}
     function downloadTemplate(){var ws=XLSX.utils.aoa_to_sheet([['checkin','checkout','city','hotelBrand','hotelName','mode','airline'],['2025-01-20','2025-01-22','Ocala','Hilton','Hilton Garden Inn','drive',''],['2025-02-02','2025-02-06','Indianapolis','Marriott','JW Marriott Indianapolis','flight','Delta']]);var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Trips');XLSX.writeFile(wb,'travel-tracker-template.xlsx');}
-    function handleImport(input){var file=input.files[0];if(!file)return;var statusEl=document.getElementById('importStatus');statusEl.textContent='Reading file...';statusEl.style.color='#94a3b8';var reader=new FileReader();reader.onload=function(e){try{var data=new Uint8Array(e.target.result);var workbook=XLSX.read(data,{type:'array'});var sheet=workbook.Sheets[workbook.SheetNames[0]];var rows=XLSX.utils.sheet_to_json(sheet,{defval:''});if(rows.length===0){statusEl.textContent='No data found.';return;}var valid=[],skipped=0;rows.forEach(function(row){var ci=(row.checkin||row.CheckIn||row['check-in']||'').toString().trim();var co=(row.checkout||row.CheckOut||row['check-out']||'').toString().trim();var city=(row.city||row.City||'').toString().trim();var mode=(row.mode||row.Mode||'drive').toString().trim().toLowerCase();var hotelBrand=(row.hotelBrand||row['Hotel Brand']||'').toString().trim();var hotelName=(row.hotelName||row['Hotel Name']||row.hotel||'').toString().trim();var airline=(row.airline||row.Airline||'').toString().trim();if(!isNaN(ci)&&ci!==''){ci=XLSX.SSF.format('yyyy-mm-dd',parseFloat(ci));}if(!isNaN(co)&&co!==''){co=XLSX.SSF.format('yyyy-mm-dd',parseFloat(co));}function nd(d){if(!d)return'';var m=d.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m)return m[3]+'-'+pad(parseInt(m[1]))+'-'+pad(parseInt(m[2]));return d;}ci=nd(ci);co=nd(co);if(!ci||!co||!city){skipped++;return;}var n=calcNights(ci,co);if(n<=0){skipped++;return;}if(mode!=='drive'&&mode!=='flight')mode='drive';valid.push({checkin:ci,checkout:co,nights:n,city:city,hotelBrand:hotelBrand,hotelName:hotelName,mode:mode,airline:airline});});if(valid.length===0){statusEl.textContent='No valid rows found.';statusEl.style.color='#f87171';return;}statusEl.textContent='Importing '+valid.length+' trips...';var promises=valid.map(function(entry){return fetch(DB_URL+'.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)}).then(function(r){return r.json();}).then(function(result){allEntries[result.name]=entry;});});Promise.all(promises).then(function(){var msg='Imported '+valid.length+' trips.';if(skipped>0)msg+=' Skipped '+skipped+' invalid rows.';statusEl.textContent=msg;statusEl.style.color='#4ade80';input.value='';setSyncStatus('Synced','ok');render();}).catch(function(){statusEl.textContent='Import failed.';statusEl.style.color='#f87171';});} catch(err){statusEl.textContent='Error: '+err.message;statusEl.style.color='#f87171';}};reader.readAsArrayBuffer(file);}
+    function handleImport(input){var file=input.files[0];if(!file)return;var statusEl=document.getElementById('importStatus');statusEl.textContent='Reading file...';statusEl.style.color='#94a3b8';var reader=new FileReader();reader.onload=function(e){try{var data=new Uint8Array(e.target.result);var workbook=XLSX.read(data,{type:'array'});var sheet=workbook.Sheets[workbook.SheetNames[0]];var rows=XLSX.utils.sheet_to_json(sheet,{defval:''});if(rows.length===0){statusEl.textContent='No data found.';return;}var valid=[],skipped=0;rows.forEach(function(row){var ci=(row.checkin||row.CheckIn||row['check-in']||'').toString().trim();var co=(row.checkout||row.CheckOut||row['check-out']||'').toString().trim();var city=(row.city||row.City||'').toString().trim();var mode=(row.mode||row.Mode||'drive').toString().trim().toLowerCase();var hotelBrand=(row.hotelBrand||row['Hotel Brand']||'').toString().trim();var hotelName=(row.hotelName||row['Hotel Name']||row.hotel||'').toString().trim();var airline=(row.airline||row.Airline||'').toString().trim();if(!isNaN(ci)&&ci!==''){ci=XLSX.SSF.format('yyyy-mm-dd',parseFloat(ci));}if(!isNaN(co)&&co!==''){co=XLSX.SSF.format('yyyy-mm-dd',parseFloat(co));}function nd(d){if(!d)return'';var m=d.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m)return m[3]+'-'+pad(parseInt(m[1]))+'-'+pad(parseInt(m[2]));return d;}ci=nd(ci);co=nd(co);if(!ci||!co||!city){skipped++;return;}var n=calcNights(ci,co);if(n<=0){skipped++;return;}if(mode!=='drive'&&mode!=='flight')mode='drive';valid.push({checkin:ci,checkout:co,nights:n,city:city,hotelBrand:hotelBrand,hotelName:hotelName,mode:mode,airline:airline});});if(valid.length===0){statusEl.textContent='No valid rows found.';statusEl.style.color='#f87171';return;}statusEl.textContent='Importing '+valid.length+' trips...';var promises=valid.map(function(entry){return fetch(DB_URL+'.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)}).then(function(r){return r.json();}).then(function(result){allEntries[result.name]=entry;});});Promise.all(promises).then(function(){var msg='Imported '+valid.length+' trips.';if(skipped>0)msg+=' Skipped '+skipped+' invalid rows.';statusEl.textContent=msg;statusEl.style.color='#4ade80';input.value='';setSyncStatus('Synced','ok');render();}).catch(function(){statusEl.textContent='Import failed.';statusEl.style.color='#f87171';});}catch(err){statusEl.textContent='Error: '+err.message;statusEl.style.color='#f87171';}};reader.readAsArrayBuffer(file);}
     function setRange(range,btn){currentRange=range;document.querySelectorAll('.range-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');var cd=document.getElementById('customRange');if(range==='custom'){cd.classList.add('visible');}else{cd.classList.remove('visible');render();}}
     function getDateRange(){var now=new Date();var y=now.getFullYear();var m=now.getMonth();var d=now.getDate();var today=y+'-'+pad(m+1)+'-'+pad(d);if(currentRange==='week'){var day=now.getDay();var diff=d-day+(day===0?-6:1);var s=new Date(y,m,diff);return{start:s.getFullYear()+'-'+pad(s.getMonth()+1)+'-'+pad(s.getDate()),end:today};}else if(currentRange==='month'){return{start:y+'-'+pad(m+1)+'-01',end:today};}else if(currentRange==='year'){return{start:y+'-01-01',end:today};}else if(currentRange==='custom'){var rs=document.getElementById('rangeStart').value;var re=document.getElementById('rangeEnd').value;if(!rs||!re)return null;return{start:rs,end:re};}return null;}
     function filterEntries(entries){var range=getDateRange();if(!range)return entries;return entries.filter(function(i){return i[1].checkin>=range.start&&i[1].checkin<=range.end;});}
