@@ -46,6 +46,8 @@
         .stat-card.marriott { background: linear-gradient(135deg, rgba(239,68,68,0.3), rgba(239,68,68,0.1)); border-color: rgba(239,68,68,0.4); }
         .stat-card.weeksaway { background: linear-gradient(135deg, rgba(245,158,11,0.3), rgba(245,158,11,0.1)); border-color: rgba(245,158,11,0.4); }
         .stat-card.weekshome { background: linear-gradient(135deg, rgba(34,197,94,0.3), rgba(34,197,94,0.1)); border-color: rgba(34,197,94,0.4); }
+        .stat-card.calaway { background: linear-gradient(135deg, rgba(251,113,133,0.3), rgba(251,113,133,0.1)); border-color: rgba(251,113,133,0.4); }
+        .stat-card.calhome { background: linear-gradient(135deg, rgba(52,211,153,0.3), rgba(52,211,153,0.1)); border-color: rgba(52,211,153,0.4); }
         .stat-label { font-size: 0.75rem; opacity: 0.8; margin-bottom: 6px; }
         .stat-value { font-size: 1.8rem; font-weight: 300; }
         .stat-sub { font-size: 0.7rem; opacity: 0.6; margin-top: 4px; }
@@ -196,6 +198,7 @@
     function pad(n) { return n < 10 ? '0' + n : '' + n; }
     function calcNights(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
     function toggleAirline(rowId, mode) { var row = document.getElementById(rowId); if (mode === 'flight') { row.classList.add('visible'); } else { row.classList.remove('visible'); } }
+    function getMondayKey(dateStr) { var d = new Date(dateStr); var day = d.getDay(); var diff = d.getDate() - day + (day === 0 ? -6 : 1); d.setDate(diff); return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
     function onCheckinChange() { var ci = document.getElementById('inputCheckin').value; var coInput = document.getElementById('inputCheckout'); if (ci) { coInput.min = ci; if (!coInput.value || coInput.value <= ci) { var next = new Date(ci); next.setDate(next.getDate() + 1); coInput.value = next.getFullYear() + '-' + pad(next.getMonth()+1) + '-' + pad(next.getDate()); } } updateNights(); }
     function updateNights() { var ci = document.getElementById('inputCheckin').value; var co = document.getElementById('inputCheckout').value; var d = document.getElementById('nightsDisplay'); if (ci && co) { var n = calcNights(ci, co); d.textContent = n > 0 ? n + ' night' + (n !== 1 ? 's' : '') + ' (' + ci + ' to ' + co + ')' : 'Check-out must be after check-in'; } else { d.textContent = 'Select check-in and check-out dates'; } }
     function onEditCheckinChange() { var ci = document.getElementById('editCheckin').value; var coInput = document.getElementById('editCheckout'); if (ci) { coInput.min = ci; if (!coInput.value || coInput.value <= ci) { var next = new Date(ci); next.setDate(next.getDate() + 1); coInput.value = next.getFullYear() + '-' + pad(next.getMonth()+1) + '-' + pad(next.getDate()); } } updateEditNights(); }
@@ -228,6 +231,16 @@
             var totalWeeks = (totalDays / 7).toFixed(1);
             var hiltonNights = filtered.filter(function(i) { return i[1].hotelBrand === 'Hilton'; }).reduce(function(sum, i) { return sum + (i[1].nights || 0); }, 0);
             var marriottNights = filtered.filter(function(i) { return i[1].hotelBrand === 'Marriott'; }).reduce(function(sum, i) { return sum + (i[1].nights || 0); }, 0);
+            var awayWeekKeys = {};
+            filtered.forEach(function(item) { var e = item[1]; if (!e.checkin || !e.checkout) return; var cur = new Date(e.checkin); var end = new Date(e.checkout); while (cur < end) { awayWeekKeys[getMondayKey(cur.toISOString().split('T')[0])] = true; cur.setDate(cur.getDate() + 1); } });
+            var allWeekKeys = {};
+            var rangeStart = range ? new Date(range.start) : startOfYear;
+            var rangeEnd = range ? new Date(range.end) : now;
+            var cur2 = new Date(rangeStart);
+            while (cur2 <= rangeEnd) { allWeekKeys[getMondayKey(cur2.toISOString().split('T')[0])] = true; cur2.setDate(cur2.getDate() + 1); }
+            var calTotalWeeks = Object.keys(allWeekKeys).length;
+            var calAwayWeeks = Object.keys(awayWeekKeys).length;
+            var calHomeWeeks = calTotalWeeks - calAwayWeeks;
             sc.style.display = 'grid';
             sc.innerHTML =
                 '<div class="stat-card drive"><div class="stat-label">By Drive</div><div class="stat-value">' + Math.round(drives/total*100) + '%</div><div class="stat-sub">' + drives + ' of ' + total + ' trips</div></div>' +
@@ -236,8 +249,10 @@
                 '<div class="stat-card nightsaway"><div class="stat-label">Nights Away</div><div class="stat-value">' + totalNights + '</div><div class="stat-sub">' + totalNights + ' of ' + totalDays + ' days (' + Math.round(totalNights/totalDays*100) + '%)</div></div>' +
                 '<div class="stat-card hilton"><div class="stat-label">Hilton Nights</div><div class="stat-value">' + hiltonNights + '</div><div class="stat-sub">of ' + totalNights + ' total</div></div>' +
                 '<div class="stat-card marriott"><div class="stat-label">Marriott Nights</div><div class="stat-value">' + marriottNights + '</div><div class="stat-sub">of ' + totalNights + ' total</div></div>' +
-                '<div class="stat-card weeksaway"><div class="stat-label">Weeks Away</div><div class="stat-value">' + weeksAway + '</div><div class="stat-sub">of ' + totalWeeks + ' total weeks</div></div>' +
-                '<div class="stat-card weekshome"><div class="stat-label">Weeks Home</div><div class="stat-value">' + weeksHome + '</div><div class="stat-sub">of ' + totalWeeks + ' total weeks</div></div>';
+                '<div class="stat-card weeksaway"><div class="stat-label">Nights / 7</div><div class="stat-value">' + weeksAway + '</div><div class="stat-sub">of ' + totalWeeks + ' weeks</div></div>' +
+                '<div class="stat-card weekshome"><div class="stat-label">Home Days / 7</div><div class="stat-value">' + weeksHome + '</div><div class="stat-sub">of ' + totalWeeks + ' weeks</div></div>' +
+                '<div class="stat-card calaway"><div class="stat-label">Travel Weeks</div><div class="stat-value">' + calAwayWeeks + '</div><div class="stat-sub">weeks with overnight travel of ' + calTotalWeeks + '</div></div>' +
+                '<div class="stat-card calhome"><div class="stat-label">Home Weeks</div><div class="stat-value">' + calHomeWeeks + '</div><div class="stat-sub">weeks with no overnight travel of ' + calTotalWeeks + '</div></div>';
         }
         var list = document.getElementById('entriesList');
         if (filtered.length === 0) { list.innerHTML = '<div class="empty">No trips found for this date range.</div>'; return; }
