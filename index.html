@@ -231,6 +231,8 @@
             var totalWeeks = (totalDays / 7).toFixed(1);
             var hiltonNights = filtered.filter(function(i) { return i[1].hotelBrand === 'Hilton'; }).reduce(function(sum, i) { return sum + (i[1].nights || 0); }, 0);
             var marriottNights = filtered.filter(function(i) { return i[1].hotelBrand === 'Marriott'; }).reduce(function(sum, i) { return sum + (i[1].nights || 0); }, 0);
+            var hiltonPct = totalNights > 0 ? Math.round(hiltonNights / totalNights * 100) : 0;
+            var marriottPct = totalNights > 0 ? Math.round(marriottNights / totalNights * 100) : 0;
             var awayWeekKeys = {};
             filtered.forEach(function(item) { var e = item[1]; if (!e.checkin || !e.checkout) return; var cur = new Date(e.checkin); var end = new Date(e.checkout); while (cur < end) { awayWeekKeys[getMondayKey(cur.toISOString().split('T')[0])] = true; cur.setDate(cur.getDate() + 1); } });
             var allWeekKeys = {};
@@ -241,18 +243,20 @@
             var calTotalWeeks = Object.keys(allWeekKeys).length;
             var calAwayWeeks = Object.keys(awayWeekKeys).length;
             var calHomeWeeks = calTotalWeeks - calAwayWeeks;
+            var calAwayPct = calTotalWeeks > 0 ? Math.round(calAwayWeeks / calTotalWeeks * 100) : 0;
+            var calHomePct = calTotalWeeks > 0 ? Math.round(calHomeWeeks / calTotalWeeks * 100) : 0;
             sc.style.display = 'grid';
             sc.innerHTML =
                 '<div class="stat-card drive"><div class="stat-label">By Drive</div><div class="stat-value">' + Math.round(drives/total*100) + '%</div><div class="stat-sub">' + drives + ' of ' + total + ' trips</div></div>' +
                 '<div class="stat-card flight"><div class="stat-label">By Flight</div><div class="stat-value">' + Math.round(flights/total*100) + '%</div><div class="stat-sub">' + flights + ' of ' + total + ' trips</div></div>' +
                 '<div class="stat-card trips"><div class="stat-label">Total Trips</div><div class="stat-value">' + total + '</div><div class="stat-sub">in selected range</div></div>' +
                 '<div class="stat-card nightsaway"><div class="stat-label">Nights Away</div><div class="stat-value">' + totalNights + '</div><div class="stat-sub">' + totalNights + ' of ' + totalDays + ' days (' + Math.round(totalNights/totalDays*100) + '%)</div></div>' +
-                '<div class="stat-card hilton"><div class="stat-label">Hilton Nights</div><div class="stat-value">' + hiltonNights + '</div><div class="stat-sub">of ' + totalNights + ' total</div></div>' +
-                '<div class="stat-card marriott"><div class="stat-label">Marriott Nights</div><div class="stat-value">' + marriottNights + '</div><div class="stat-sub">of ' + totalNights + ' total</div></div>' +
+                '<div class="stat-card hilton"><div class="stat-label">Hilton Nights</div><div class="stat-value">' + hiltonPct + '%</div><div class="stat-sub">' + hiltonNights + ' of ' + totalNights + ' nights</div></div>' +
+                '<div class="stat-card marriott"><div class="stat-label">Marriott Nights</div><div class="stat-value">' + marriottPct + '%</div><div class="stat-sub">' + marriottNights + ' of ' + totalNights + ' nights</div></div>' +
                 '<div class="stat-card weeksaway"><div class="stat-label">Nights / 7</div><div class="stat-value">' + weeksAway + '</div><div class="stat-sub">of ' + totalWeeks + ' weeks</div></div>' +
                 '<div class="stat-card weekshome"><div class="stat-label">Home Days / 7</div><div class="stat-value">' + weeksHome + '</div><div class="stat-sub">of ' + totalWeeks + ' weeks</div></div>' +
-                '<div class="stat-card calaway"><div class="stat-label">Travel Weeks</div><div class="stat-value">' + calAwayWeeks + '</div><div class="stat-sub">weeks with overnight travel of ' + calTotalWeeks + '</div></div>' +
-                '<div class="stat-card calhome"><div class="stat-label">Home Weeks</div><div class="stat-value">' + calHomeWeeks + '</div><div class="stat-sub">weeks with no overnight travel of ' + calTotalWeeks + '</div></div>';
+                '<div class="stat-card calaway"><div class="stat-label">Travel Weeks</div><div class="stat-value">' + calAwayPct + '%</div><div class="stat-sub">' + calAwayWeeks + ' of ' + calTotalWeeks + ' weeks</div></div>' +
+                '<div class="stat-card calhome"><div class="stat-label">Home Weeks</div><div class="stat-value">' + calHomePct + '%</div><div class="stat-sub">' + calHomeWeeks + ' of ' + calTotalWeeks + ' weeks</div></div>';
         }
         var list = document.getElementById('entriesList');
         if (filtered.length === 0) { list.innerHTML = '<div class="empty">No trips found for this date range.</div>'; return; }
